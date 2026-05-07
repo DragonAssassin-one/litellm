@@ -2261,6 +2261,22 @@ def test_max_effort_accepted_for_opus_47():
     assert result["output_config"]["effort"] == "max"
 
 
+def test_xhigh_effort_accepted_for_bedrock_route_opus_47():
+    """Test that effort='xhigh' works after stripping the Bedrock invoke route."""
+    config = AnthropicConfig()
+    messages = [{"role": "user", "content": "Test"}]
+
+    result = config.transform_request(
+        model="invoke/global.anthropic.claude-opus-4-7",
+        messages=messages,
+        optional_params={"output_config": {"effort": "xhigh"}},
+        litellm_params={},
+        headers={},
+    )
+
+    assert result["output_config"]["effort"] == "xhigh"
+
+
 def test_effort_beta_header_not_injected_for_46_models():
     """
     Test that is_effort_used returns False for Claude 4.6 models.

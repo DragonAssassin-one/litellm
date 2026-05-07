@@ -205,14 +205,34 @@ class AnthropicConfig(AnthropicModelInfo, BaseConfig):
         Mirrors the pattern used in ``openai/chat/gpt_5_transformation.py`` so
         that adding support for a new effort level is a pure model-map change.
         """
-        try:
-            return _supports_factory(
-                model=model,
-                custom_llm_provider="anthropic",
-                key=f"supports_{level}_reasoning_effort",
+        support_key = f"supports_{level}_reasoning_effort"
+
+        def _check_model_support(
+            model_to_check: str, custom_llm_provider: Optional[str]
+        ) -> bool:
+            try:
+                return (
+                    _supports_factory(
+                        model=model_to_check,
+                        custom_llm_provider=custom_llm_provider,
+                        key=support_key,
+                    )
+                    is True
+                )
+            except Exception:
+                return False
+
+        if _check_model_support(model_to_check=model, custom_llm_provider="anthropic"):
+            return True
+
+        if model.startswith("invoke/"):
+            _, route_stripped_model = model.split("/", 1)
+            return _check_model_support(
+                model_to_check=route_stripped_model,
+                custom_llm_provider="bedrock",
             )
-        except Exception:
-            return False
+
+        return False
 
     def get_supported_openai_params(self, model: str):
         params = [
